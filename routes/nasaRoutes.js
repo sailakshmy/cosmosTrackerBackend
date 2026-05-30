@@ -4,13 +4,16 @@ import "dotenv/config";
 const nasaRouter = express.Router();
 
 nasaRouter.get("/", async (req, res, next) => {
-  const { date } = req.query;
+  const { date, firstLoad } = req.query;
   console.log("Req", req.query);
   let apodPictureOfTheDay = await fetch(
     `https://api.nasa.gov/planetary/apod?api_key=${process.env.NASA_API_KEY}&date=${date}`,
   );
   let apodData = await apodPictureOfTheDay.json();
-  if (apodData?.msg?.includes("No data available for date")) {
+  if (
+    firstLoad !== "true" &&
+    apodData?.msg?.includes("No data available for date")
+  ) {
     console.log("No available data block");
     const previousDate = new Date();
     previousDate?.setDate(previousDate?.getDate() - 1);
