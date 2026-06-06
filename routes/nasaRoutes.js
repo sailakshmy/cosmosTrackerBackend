@@ -59,7 +59,9 @@ nasaRouter.get("/", async (req, res) => {
     }
 
     console.log("Apod", apodData);
-    res.json({ message: "NASA get route is working", data: { ...apodData } });
+    res
+      .status(200)
+      .json({ message: "NASA get route is working", data: { ...apodData } });
   } catch (error) {
     console.error(error);
     res.status(502).json({
