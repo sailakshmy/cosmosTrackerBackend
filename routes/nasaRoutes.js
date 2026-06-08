@@ -42,6 +42,11 @@ const fetchApod = async (date) => {
   return data;
 };
 
+nasaRouter.get(/(.*)/, (req, res, next) => {
+  res.set("Cache-Control", "public, max-age=3600");
+  next();
+});
+
 nasaRouter.get("/", async (req, res) => {
   const { date, firstLoad } = req.query;
   console.log("Req", req.query);
