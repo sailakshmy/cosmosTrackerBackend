@@ -175,7 +175,7 @@ nasaRouter.get("/neo", async (req, res) => {
       highestVelocityObject,
       // neoFeedData,
     });
-  } catch (e) {
+  } catch (error) {
     console.error("Error while fetching NEO Feed from NASA");
     res.status(502).json({
       message: "Could not fetch NEO Feed from NASA",
