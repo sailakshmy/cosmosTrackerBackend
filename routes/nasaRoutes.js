@@ -42,14 +42,15 @@ const fetchApod = async (date) => {
   return data;
 };
 
-nasaRouter.get(/(.*)/, (req, res, next) => {
+nasaRouter.use((req, res, next) => {
   res.set("Cache-Control", "public, max-age=3600");
   next();
 });
 
 nasaRouter.get("/", async (req, res) => {
-  const { date, firstLoad } = req.query;
+  const { date: queryParamsDate, firstLoad } = req.query;
   console.log("Req", req.query);
+  const date = queryParamsDate ?? new Date().toISOString().split("T")[0];
   const cachedResponse = nasaCache.get(date);
   if (cachedResponse) {
     res
@@ -97,10 +98,10 @@ const parseDataFromNeoFeedApi = (neoFeedData) => {
   //   "  Object.keys(neoFeedData.near_earth_objects)",
   //   Object.keys(neoFeedData.near_earth_objects),
   // );
-  const nearEarthObjects = neoFeedData.near_earth_objects;
+  const nearEarthObjects = neoFeedData?.near_earth_objects;
   // Iterate through the near_earth_objects
   Object.keys(nearEarthObjects)?.forEach((nearEarthObject) => {
-    const nearEarthObjectDate = nearEarthObjects[nearEarthObject];
+    const nearEarthObjectDate = nearEarthObjects?.[nearEarthObject];
     if (nearEarthObjectDate?.length) {
       nearEarthObjectDate?.forEach((nearEarthObjectDay) => {
         if (nearEarthObjectDay?.is_potentially_hazardous_asteroid)
@@ -108,14 +109,14 @@ const parseDataFromNeoFeedApi = (neoFeedData) => {
         if (nearEarthObjectDay?.close_approach_data?.length) {
           const closeApproachData =
             nearEarthObjectDay?.close_approach_data?.[0];
-          closestToEarthDistance = Math.min(
-            closestToEarthDistance,
+          const missDistanceKm = Number(
             closeApproachData?.miss_distance?.kilometers,
           );
-          if (
-            closestToEarthDistance ===
-            Number(closeApproachData?.miss_distance?.kilometers)
-          ) {
+          closestToEarthDistance = Math.min(
+            closestToEarthDistance,
+            missDistanceKm,
+          );
+          if (closestToEarthDistance === missDistanceKm) {
             objectClosestToEarth = {
               name: nearEarthObjectDay?.name,
               id: nearEarthObjectDay?.id,
@@ -124,14 +125,11 @@ const parseDataFromNeoFeedApi = (neoFeedData) => {
             };
           }
           if (closeApproachData?.relative_velocity) {
-            highestVelocity = Math.max(
-              highestVelocity,
+            const relativeVelKmPH = Number(
               closeApproachData?.relative_velocity?.kilometers_per_hour,
             );
-            if (
-              highestVelocity ===
-              Number(closeApproachData?.relative_velocity?.kilometers_per_hour)
-            ) {
+            highestVelocity = Math.max(highestVelocity, relativeVelKmPH);
+            if (highestVelocity === relativeVelKmPH) {
               highestVelocityObject = {
                 ...closeApproachData,
                 name: nearEarthObjectDay?.name,
