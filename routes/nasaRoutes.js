@@ -3,7 +3,7 @@ import "dotenv/config";
 import NodeCache from "@cacheable/node-cache";
 
 const nasaRouter = express.Router();
-const nasaCache = new NodeCache({ stdTTL: 8640000 });
+const nasaCache = new NodeCache({ stdTTL: 86400 });
 
 const getApodUrl = (date) => {
   const params = new URLSearchParams({ api_key: process.env.NASA_API_KEY });
@@ -152,34 +152,43 @@ const parseDataFromNeoFeedApi = (neoFeedData) => {
 
 nasaRouter.get("/neo", async (req, res) => {
   const { startDate, endDate } = req.query;
-  try {
-    const neoFeedRes = await fetch(
-      `${process.env.NASA_BASE_URL}/neo/rest/v1/feed?start_date=${startDate}&end_date=${endDate}&api_key=${process.env.NASA_API_KEY}`,
-    );
-    const neoFeedData = await neoFeedRes.json();
-    // console.log("neoFeedData", neoFeedData);
-    const {
-      totalNeos: totalNeosInTheDateRange,
-      hazardousNeos,
-      objectClosestToEarth,
-      highestVelocityObject,
-    } = parseDataFromNeoFeedApi(neoFeedData);
-
-    res.status(200).json({
-      message: "NASA neo get route is working",
-      totalNeos: totalNeosInTheDateRange,
-      hazardousNeos,
-      objectClosestToEarth,
-      highestVelocityObject,
-      // neoFeedData,
-    });
-  } catch (error) {
-    console.error("Error while fetching NEO Feed from NASA");
-    res.status(502).json({
-      message: "Could not fetch NEO Feed from NASA",
-      error: error.message,
-    });
+  const neoCache = nasaCache.get(`${startDate}-${endDate}`);
+  let neoFeedData;
+  let message;
+  if (!neoCache) {
+    try {
+      const neoFeedRes = await fetch(
+        `${process.env.NASA_BASE_URL}/neo/rest/v1/feed?start_date=${startDate}&end_date=${endDate}&api_key=${process.env.NASA_API_KEY}`,
+      );
+      neoFeedData = await neoFeedRes.json();
+      nasaCache.set(`${startDate}-${endDate}`, neoFeedData);
+      message = "NASA neo get route is working";
+      // console.log("neoFeedData", neoFeedData);
+    } catch (error) {
+      console.error("Error while fetching NEO Feed from NASA");
+      res.status(502).json({
+        message: "Could not fetch NEO Feed from NASA",
+        error: error.message,
+      });
+    }
+  } else {
+    neoFeedData = { ...neoCache };
+    message = "NASA Neo GET Route fetched data from the server cache";
   }
+  const {
+    totalNeos: totalNeosInTheDateRange,
+    hazardousNeos,
+    objectClosestToEarth,
+    highestVelocityObject,
+  } = parseDataFromNeoFeedApi(neoFeedData);
+  res.status(200).json({
+    message,
+    totalNeos: totalNeosInTheDateRange,
+    hazardousNeos,
+    objectClosestToEarth,
+    highestVelocityObject,
+    // neoFeedData,
+  });
 });
 
 export default nasaRouter;
