@@ -1,6 +1,6 @@
 import express from "express";
 import "dotenv/config";
-import NodeCache from "@cacheable/node-cache";
+import NodeCache from "node-cache";
 
 const nasaRouter = express.Router();
 const nasaCache = new NodeCache({ stdTTL: 86400 });
@@ -49,7 +49,7 @@ nasaRouter.use((req, res, next) => {
 
 nasaRouter.get("/", async (req, res) => {
   const { date: queryParamsDate, firstLoad } = req.query;
- // console.log("Req", req.query);
+  // console.log("Req", req.query);
   const date = queryParamsDate ?? new Date().toISOString().split("T")[0];
   const cachedResponse = nasaCache.get(date);
   if (cachedResponse) {
@@ -173,7 +173,7 @@ nasaRouter.get("/neo", async (req, res) => {
       console.log("neoFeedData", neoFeedData);
     } catch (error) {
       console.error("Error while fetching NEO Feed from NASA");
-      res.status(502).json({
+      return res.status(502).json({
         message: "Could not fetch NEO Feed from NASA",
         error: error.message,
       });
@@ -190,11 +190,11 @@ nasaRouter.get("/neo", async (req, res) => {
     message: errorMessageFromNeoApi,
   } = parseDataFromNeoFeedApi(neoFeedData);
   if (errorMessageFromNeoApi) {
-    res.status(404).json({
+    return res.status(404).json({
       errorMessageFromNeoApi,
     });
   } else
-    res.status(200).json({
+    return res.status(200).json({
       message,
       totalNeos: totalNeosInTheDateRange,
       hazardousNeos,
