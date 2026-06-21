@@ -99,59 +99,66 @@ const parseDataFromNeoFeedApi = (neoFeedData) => {
   //   Object.keys(neoFeedData.near_earth_objects),
   // );
   const nearEarthObjects = neoFeedData?.near_earth_objects;
-  // Iterate through the near_earth_objects
-  Object.keys(nearEarthObjects)?.forEach((nearEarthObject) => {
-    const nearEarthObjectDate = nearEarthObjects?.[nearEarthObject];
-    if (nearEarthObjectDate?.length) {
-      nearEarthObjectDate?.forEach((nearEarthObjectDay) => {
-        if (nearEarthObjectDay?.is_potentially_hazardous_asteroid)
-          hazardousNeos++;
-        if (nearEarthObjectDay?.close_approach_data?.length) {
-          const closeApproachData =
-            nearEarthObjectDay?.close_approach_data?.[0];
-          const missDistanceKm = Number(
-            closeApproachData?.miss_distance?.kilometers,
-          );
-          closestToEarthDistance = Math.min(
-            closestToEarthDistance,
-            missDistanceKm,
-          );
-          if (closestToEarthDistance === missDistanceKm) {
-            objectClosestToEarth = {
-              name: nearEarthObjectDay?.name,
-              id: nearEarthObjectDay?.id,
-              neo_reference_id: nearEarthObjectDay?.neo_reference_id,
-              ...closeApproachData,
-            };
-          }
-          if (closeApproachData?.relative_velocity) {
-            const relativeVelKmPH = Number(
-              closeApproachData?.relative_velocity?.kilometers_per_hour,
+  if (nearEarthObjects) {
+    // Iterate through the near_earth_objects
+    Object.keys(nearEarthObjects)?.forEach((nearEarthObject) => {
+      const nearEarthObjectDate = nearEarthObjects?.[nearEarthObject];
+      if (nearEarthObjectDate?.length) {
+        nearEarthObjectDate?.forEach((nearEarthObjectDay) => {
+          if (nearEarthObjectDay?.is_potentially_hazardous_asteroid)
+            hazardousNeos++;
+          if (nearEarthObjectDay?.close_approach_data?.length) {
+            const closeApproachData =
+              nearEarthObjectDay?.close_approach_data?.[0];
+            const missDistanceKm = Number(
+              closeApproachData?.miss_distance?.kilometers,
             );
-            highestVelocity = Math.max(highestVelocity, relativeVelKmPH);
-            if (highestVelocity === relativeVelKmPH) {
-              highestVelocityObject = {
-                ...closeApproachData,
+            closestToEarthDistance = Math.min(
+              closestToEarthDistance,
+              missDistanceKm,
+            );
+            if (closestToEarthDistance === missDistanceKm) {
+              objectClosestToEarth = {
                 name: nearEarthObjectDay?.name,
                 id: nearEarthObjectDay?.id,
                 neo_reference_id: nearEarthObjectDay?.neo_reference_id,
+                ...closeApproachData,
               };
             }
+            if (closeApproachData?.relative_velocity) {
+              const relativeVelKmPH = Number(
+                closeApproachData?.relative_velocity?.kilometers_per_hour,
+              );
+              highestVelocity = Math.max(highestVelocity, relativeVelKmPH);
+              if (highestVelocity === relativeVelKmPH) {
+                highestVelocityObject = {
+                  ...closeApproachData,
+                  name: nearEarthObjectDay?.name,
+                  id: nearEarthObjectDay?.id,
+                  neo_reference_id: nearEarthObjectDay?.neo_reference_id,
+                };
+              }
+            }
           }
-        }
-      });
-    }
-  });
-  return {
-    totalNeos: totalNeosInTheDateRange,
-    hazardousNeos,
-    objectClosestToEarth,
-    highestVelocityObject,
-  };
+        });
+      }
+    });
+    return {
+      totalNeos: totalNeosInTheDateRange,
+      hazardousNeos,
+      objectClosestToEarth,
+      highestVelocityObject,
+    };
+  } else
+    return {
+      message:
+        "No response received for this selected period. Please try a shorter date range period.",
+    };
 };
 
 nasaRouter.get("/neo", async (req, res) => {
   const { startDate, endDate } = req.query;
+  console.log("start", startDate);
   const neoCache = nasaCache.get(`${startDate}-${endDate}`);
   let neoFeedData;
   let message;
@@ -163,7 +170,7 @@ nasaRouter.get("/neo", async (req, res) => {
       neoFeedData = await neoFeedRes.json();
       nasaCache.set(`${startDate}-${endDate}`, neoFeedData);
       message = "NASA neo get route is working";
-      // console.log("neoFeedData", neoFeedData);
+      console.log("neoFeedData", neoFeedData);
     } catch (error) {
       console.error("Error while fetching NEO Feed from NASA");
       res.status(502).json({
@@ -180,15 +187,21 @@ nasaRouter.get("/neo", async (req, res) => {
     hazardousNeos,
     objectClosestToEarth,
     highestVelocityObject,
+    message: errorMessageFromNeoApi,
   } = parseDataFromNeoFeedApi(neoFeedData);
-  res.status(200).json({
-    message,
-    totalNeos: totalNeosInTheDateRange,
-    hazardousNeos,
-    objectClosestToEarth,
-    highestVelocityObject,
-    // neoFeedData,
-  });
+  if (errorMessageFromNeoApi) {
+    res.status(404).json({
+      errorMessageFromNeoApi,
+    });
+  } else
+    res.status(200).json({
+      message,
+      totalNeos: totalNeosInTheDateRange,
+      hazardousNeos,
+      objectClosestToEarth,
+      highestVelocityObject,
+      // neoFeedData,
+    });
 });
 
 export default nasaRouter;
