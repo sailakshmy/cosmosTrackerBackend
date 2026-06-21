@@ -49,7 +49,7 @@ nasaRouter.use((req, res, next) => {
 
 nasaRouter.get("/", async (req, res) => {
   const { date: queryParamsDate, firstLoad } = req.query;
-  console.log("Req", req.query);
+ // console.log("Req", req.query);
   const date = queryParamsDate ?? new Date().toISOString().split("T")[0];
   const cachedResponse = nasaCache.get(date);
   if (cachedResponse) {
