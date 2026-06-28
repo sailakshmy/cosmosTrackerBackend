@@ -47,7 +47,7 @@ export const getFeed = async ({ startDate, endDate }) => {
       hazardousNeos,
       objectClosestToEarth,
       highestVelocityObject,
-      // neoFeedData,
+      nearEarthObjectList: neoFeedData?.near_earth_objects,
     };
   // return res.status(200).json({
   //   message,
