@@ -14,7 +14,6 @@ nasaRouter.use((req, res, next) => {
 
 nasaRouter.get("/", async (req, res) => {
   const { date: queryParamsDate, firstLoad } = req.query;
-  // console.log("Req", req.query);
   try {
     const apodDataRes = await getApod(queryParamsDate, firstLoad);
     return res.status(200).json(apodDataRes);
@@ -28,9 +27,9 @@ nasaRouter.get("/", async (req, res) => {
 
 nasaRouter.get("/neo", async (req, res) => {
   const { startDate, endDate } = req.query;
-  console.log("start", startDate);
   try {
     const data = await getFeed({ startDate, endDate });
+    console.log("Feed data from route", data);
     return res.status(200).json(data);
   } catch (err) {
     return res.status(500).json({

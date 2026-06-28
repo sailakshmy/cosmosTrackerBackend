@@ -14,15 +14,11 @@ export const getFeed = async ({ startDate, endDate }) => {
         neoFeedData = await neoFeedRes.json();
         nasaCache.set(`${startDate}-${endDate}`, neoFeedData);
         message = "NASA neo get route is working";
-        console.log("neoFeedData", neoFeedData);
+        // console.log("neoFeedData", neoFeedData);
       } else throw new Error(`NASA API returned ${neoFeedRes.status}`);
     } catch (error) {
       console.error("Error while fetching NEO Feed from NASA");
       throw error;
-      //   return res.status(502).json({
-      //     message: "Could not fetch NEO Feed from NASA",
-      //     error: error.message,
-      //   });
     }
   } else {
     neoFeedData = { ...neoCache };
@@ -37,9 +33,6 @@ export const getFeed = async ({ startDate, endDate }) => {
   } = parseDataFromNeoFeedApi(neoFeedData);
   if (errorMessageFromNeoApi) {
     throw Error(errorMessageFromNeoApi);
-    // return res.status(404).json({
-    //   errorMessageFromNeoApi,
-    // });
   } else
     return {
       message,
@@ -49,12 +42,4 @@ export const getFeed = async ({ startDate, endDate }) => {
       highestVelocityObject,
       nearEarthObjectList: neoFeedData?.near_earth_objects,
     };
-  // return res.status(200).json({
-  //   message,
-  //   totalNeos: totalNeosInTheDateRange,
-  //   hazardousNeos,
-  //   objectClosestToEarth,
-  //   highestVelocityObject,
-  //   // neoFeedData,
-  // });
 };
