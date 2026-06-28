@@ -29,6 +29,7 @@ export const getFeed = async ({ startDate, endDate }) => {
     hazardousNeos,
     objectClosestToEarth,
     highestVelocityObject,
+    nearEarthObjectList,
     message: errorMessageFromNeoApi,
   } = parseDataFromNeoFeedApi(neoFeedData);
   if (errorMessageFromNeoApi) {
@@ -40,6 +41,6 @@ export const getFeed = async ({ startDate, endDate }) => {
       hazardousNeos,
       objectClosestToEarth,
       highestVelocityObject,
-      nearEarthObjectList: neoFeedData?.near_earth_objects,
+      nearEarthObjectList,
     };
 };

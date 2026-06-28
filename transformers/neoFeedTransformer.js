@@ -5,11 +5,8 @@ export const parseDataFromNeoFeedApi = (neoFeedData) => {
   let objectClosestToEarth;
   let highestVelocity = 0;
   let highestVelocityObject;
-  // console.log("neoFeedData.near_earth_objects", neoFeedData.near_earth_objects);
-  // console.log(
-  //   "  Object.keys(neoFeedData.near_earth_objects)",
-  //   Object.keys(neoFeedData.near_earth_objects),
-  // );
+  const nearEarthObjectList = [];
+
   const nearEarthObjects = neoFeedData?.near_earth_objects;
   if (nearEarthObjects) {
     // Iterate through the near_earth_objects
@@ -53,13 +50,33 @@ export const parseDataFromNeoFeedApi = (neoFeedData) => {
             }
           }
         });
+        if (nearEarthObjectDate?.length > 1) {
+          nearEarthObjectDate?.sort((nearEarthObject1, nearEarthObject2) => {
+            const epochDate1 =
+              nearEarthObject1?.close_approach_data?.[0]
+                ?.epoch_date_close_approach;
+            const epochDate2 =
+              nearEarthObject2?.close_approach_data?.[0]
+                ?.epoch_date_close_approach;
+            return new Date(epochDate1) - new Date(epochDate2);
+          });
+        }
+        nearEarthObjectList.push({
+          [nearEarthObject]: [...nearEarthObjectDate],
+        });
       }
+    });
+    nearEarthObjectList?.sort((obj1, obj2) => {
+      const date1 = Object.keys(obj1)?.[0];
+      const date2 = Object.keys(obj2)?.[0];
+      return new Date(date1) - new Date(date2);
     });
     return {
       totalNeos: totalNeosInTheDateRange,
       hazardousNeos,
       objectClosestToEarth,
       highestVelocityObject,
+      nearEarthObjectList,
     };
   } else
     return {
