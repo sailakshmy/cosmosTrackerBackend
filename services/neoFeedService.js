@@ -1,15 +1,25 @@
 import NodeCache from "node-cache";
 import { parseDataFromNeoFeedApi } from "../transformers/neoFeedTransformer.js";
 const nasaCache = new NodeCache({ stdTTL: 86400 });
+
+const getNeoFeedUrl = (startDate, endDate) => {
+  const params = new URLSearchParams({ api_key: process.env.NASA_API_KEY });
+  if (startDate) {
+    params.set("start_date", startDate);
+  }
+  if (endDate) {
+    params.set("end_date", endDate);
+  }
+  return `${process.env.NASA_BASE_URL}/neo/rest/v1/feed?${params.toString()}`;
+};
+
 export const getFeed = async ({ startDate, endDate }) => {
   const neoCache = nasaCache.get(`${startDate}-${endDate}`);
   let neoFeedData;
   let message;
   if (!neoCache) {
     try {
-      const neoFeedRes = await fetch(
-        `${process.env.NASA_BASE_URL}/neo/rest/v1/feed?start_date=${startDate}&end_date=${endDate}&api_key=${process.env.NASA_API_KEY}`,
-      );
+      const neoFeedRes = await fetch(getNeoFeedUrl(startDate, endDate));
       if (neoFeedRes.ok) {
         neoFeedData = await neoFeedRes.json();
         nasaCache.set(`${startDate}-${endDate}`, neoFeedData);
