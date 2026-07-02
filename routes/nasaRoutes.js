@@ -4,6 +4,7 @@ import "dotenv/config";
 // import { parseDataFromNeoFeedApi } from "../transformers/neoFeedTransformer.js";
 import { getFeed } from "../services/neoFeedService.js";
 import { getApod } from "../services/apodService.js";
+import { getNeoLookUp } from "../services/neoLookupService.js";
 
 const nasaRouter = express.Router();
 
@@ -34,6 +35,21 @@ nasaRouter.get("/neo", async (req, res) => {
   } catch (err) {
     return res.status(500).json({
       message: "Could not fetch NEO Feed from NASA",
+      error: err.message,
+    });
+  }
+});
+
+nasaRouter.get("/neo/:neoId", async (req, res) => {
+  const { neoId } = req.params;
+  console.log("neoId", neoId);
+  try {
+    const neoLookUpRes = await getNeoLookUp(neoId);
+    console.log("Data from the lookup route", neoLookUpRes);
+    return res.status(200).json(neoLookUpRes);
+  } catch (error) {
+    return res.status(500).json({
+      message: "Could not fetch neo look up data from NASA",
       error: err.message,
     });
   }
