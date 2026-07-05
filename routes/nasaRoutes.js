@@ -2,9 +2,12 @@ import express from "express";
 import "dotenv/config";
 // import NodeCache from "node-cache";
 // import { parseDataFromNeoFeedApi } from "../transformers/neoFeedTransformer.js";
-import { getFeed } from "../services/neoFeedService.js";
-import { getApod } from "../services/apodService.js";
-import { getNeoLookUp } from "../services/neoLookupService.js";
+
+import {
+  getApodController,
+  getNeoFeedController,
+  getNeoLookUpController,
+} from "../controllers/nasaControllers.js";
 
 const nasaRouter = express.Router();
 
@@ -13,46 +16,10 @@ nasaRouter.use((req, res, next) => {
   next();
 });
 
-nasaRouter.get("/", async (req, res) => {
-  const { date: queryParamsDate, firstLoad } = req.query;
-  try {
-    const apodDataRes = await getApod(queryParamsDate, firstLoad);
-    return res.status(200).json(apodDataRes);
-  } catch (err) {
-    return res.status(502).json({
-      message: "Could not fetch data from NASA",
-      error: err.message,
-    });
-  }
-});
+nasaRouter.get("/", getApodController);
 
-nasaRouter.get("/neo", async (req, res) => {
-  const { startDate, endDate } = req.query;
-  try {
-    const data = await getFeed({ startDate, endDate });
-    console.log("Feed data from route", data);
-    return res.status(200).json(data);
-  } catch (err) {
-    return res.status(500).json({
-      message: "Could not fetch NEO Feed from NASA",
-      error: err.message,
-    });
-  }
-});
+nasaRouter.get("/neo", getNeoFeedController);
 
-nasaRouter.get("/neo/:neoId", async (req, res) => {
-  const { neoId } = req.params;
-  console.log("neoId", neoId);
-  try {
-    const neoLookUpRes = await getNeoLookUp(neoId);
-    console.log("Data from the lookup route", neoLookUpRes);
-    return res.status(200).json(neoLookUpRes);
-  } catch (err) {
-    return res.status(500).json({
-      message: "Could not fetch neo look up data from NASA",
-      error: err.message,
-    });
-  }
-});
+nasaRouter.get("/neo/:neoId", getNeoLookUpController);
 
 export default nasaRouter;
