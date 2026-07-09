@@ -1,6 +1,8 @@
 import { getFeed } from "../services/neoFeedService.js";
 import { getApod } from "../services/apodService.js";
 import { getNeoLookUp } from "../services/neoLookupService.js";
+import { getTleList } from "../services/tleService.js";
+
 export const getApodController = async (req, res) => {
   const { date: queryParamsDate, firstLoad } = req.query;
   try {
@@ -28,9 +30,24 @@ export const getNeoFeedController = async (req, res) => {
   }
 };
 
+export const getNeoLookUpController = async (req, res) => {
+  const { neoId } = req.params;
+  console.log("neoId", neoId);
+  try {
+    const neoLookUpRes = await getNeoLookUp(neoId);
+    console.log("Data from the lookup route", neoLookUpRes);
+    return res.status(200).json(neoLookUpRes);
+  } catch (err) {
+    return res.status(500).json({
+      message: "Could not fetch neo look up data from NASA",
+      error: err.message,
+    });
+  }
+};
+
 export const getTLEListController = async (req, res) => {
   try {
-    const tleListRes = await getNeoLookUp(neoId);
+    const tleListRes = await getTleList();
     console.log("Data from the tle list route", tleListRes);
     return res.status(200).json(tleListRes);
   } catch (err) {
