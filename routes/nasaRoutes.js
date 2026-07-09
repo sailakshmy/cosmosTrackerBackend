@@ -7,6 +7,7 @@ import {
   getApodController,
   getNeoFeedController,
   getNeoLookUpController,
+  getTLEListController,
 } from "../controllers/nasaControllers.js";
 
 const nasaRouter = express.Router();
@@ -22,6 +23,6 @@ nasaRouter.get("/neo", getNeoFeedController);
 
 nasaRouter.get("/neo/:neoId", getNeoLookUpController);
 
-nasaRouter.get("/tle", getNeoLookUpController);
+nasaRouter.get("/tle", getTLEListController);
 
 export default nasaRouter;
