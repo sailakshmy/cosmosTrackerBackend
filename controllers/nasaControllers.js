@@ -28,16 +28,14 @@ export const getNeoFeedController = async (req, res) => {
   }
 };
 
-export const getNeoLookUpController = async (req, res) => {
-  const { neoId } = req.params;
-  console.log("neoId", neoId);
+export const getTLEListController = async (req, res) => {
   try {
-    const neoLookUpRes = await getNeoLookUp(neoId);
-    console.log("Data from the lookup route", neoLookUpRes);
-    return res.status(200).json(neoLookUpRes);
+    const tleListRes = await getNeoLookUp(neoId);
+    console.log("Data from the tle list route", tleListRes);
+    return res.status(200).json(tleListRes);
   } catch (err) {
     return res.status(500).json({
-      message: "Could not fetch neo look up data from NASA",
+      message: "Could not fetch the tle list data from NASA",
       error: err.message,
     });
   }

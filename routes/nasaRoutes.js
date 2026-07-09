@@ -22,4 +22,6 @@ nasaRouter.get("/neo", getNeoFeedController);
 
 nasaRouter.get("/neo/:neoId", getNeoLookUpController);
 
+nasaRouter.get("/tle", getNeoLookUpController);
+
 export default nasaRouter;
